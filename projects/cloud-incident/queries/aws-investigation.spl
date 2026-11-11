@@ -1,0 +1,14 @@
+``` List IAM users seen in the training dataset. Adapted from original notes. ```
+index=client3 sourcetype="aws:cloudtrail" "userIdentity.type"=IAMUser
+| stats count by userIdentity.userName
+| sort userIdentity.userName
+
+``` Separate search: inspect API events whose recorded MFA context is false.
+This is an investigation filter, not a standalone compromise detection. ```
+index=client3 sourcetype="aws:cloudtrail" userIdentity.sessionContext.attributes.mfaAuthenticated="false" NOT eventName="ConsoleLogin"
+| table _time eventName userIdentity.userName sourceIPAddress
+
+``` Separate search: identify ACL events mentioning the AllUsers group.
+Inspect the full ACL and bucket configuration before deciding actual exposure. ```
+index=client3 sourcetype="aws:cloudtrail" eventName="PutBucketAcl" AllUsers
+| table _time eventID requestParameters.bucketName userIdentity.principalId

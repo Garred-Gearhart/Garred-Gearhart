@@ -1,0 +1,17 @@
+``` Run each search separately in the historical training dataset.
+Adapted from original investigation notes; not rerun for this portfolio. ```
+
+``` Review Cerber alert signatures and their observed frequency. ```
+index=client1 sourcetype="suricata" "cerber"
+| stats count by alert.signature, alert.signature_id
+| sort count
+
+``` Separate search: inspect registry evidence of file-share connections.
+Registry artifacts are leads and do not prove current connectivity. ```
+index=client1 host="we8105desk" sourcetype="WinRegistry" fileshare
+
+``` Separate search: count distinct PDF paths in the relevant server events.
+This counts file activity; it does not independently prove encryption. ```
+index=client1 host="we9041srv" app="win:unknown"
+| where like(lower(Relative_Target_Name), "%.pdf")
+| stats dc(Relative_Target_Name) as distinct_pdf_paths
